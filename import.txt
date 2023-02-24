@@ -1,0 +1,21 @@
+import pandas as pd
+import requests
+
+# Send a GET request to the REST API endpoint to get the CSV data
+response = requests.get('https://example.com/api/data.csv')
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Decode the response content to text
+    content = response.content.decode('utf-8')
+
+    # Create a Pandas DataFrame from the CSV data
+    df = pd.read_csv(content)
+
+    # Process the DataFrame as needed
+    # ...
+
+    # Print the resulting DataFrame
+    print(df)
+else:
+    print(f'Error: {response.status_code}')
