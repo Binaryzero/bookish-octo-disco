@@ -5,4 +5,9 @@ $fileToFind = "example.txt"
 $searchPath = "C:\"
 
 # Search recursively for the file and output the results to the console
-Get-ChildItem $searchPath -Recurse -Filter $fileToFind | Select-Object FullName
+try {
+    Get-ChildItem $searchPath -Recurse -Filter $fileToFind -ErrorAction Stop | Select-Object FullName
+}
+catch {
+    Write-Host "An error occurred while searching for the file: $($Error[0].Exception.Message)" -ForegroundColor Red
+}
