@@ -1,0 +1,34 @@
+import requests
+import json
+
+# Set the API endpoint URL and authentication credentials
+url = "https://your-jira-instance.com/rest/api/2/issue/"
+username = "your-username"
+password = "your-password"
+
+# Set the issue data as a JSON object
+issue_data = {
+    "fields": {
+        "project": {"key": "YOUR_PROJECT_KEY"},
+        "summary": "Issue summary",
+        "description": "Issue description",
+        "issuetype": {"name": "Story"}
+    }
+}
+
+# Convert the issue data to a JSON string
+payload = json.dumps(issue_data)
+
+# Set the HTTP headers
+headers = {
+    "Content-Type": "application/json"
+}
+
+# Send the HTTP POST request to create the issue
+response = requests.post(url, auth=(username, password), headers=headers, data=payload)
+
+# Check if the request was successful
+if response.status_code == 201:
+    print("Issue created successfully!")
+else:
+    print("Failed to create issue. Error: " + str(response.status_code))
