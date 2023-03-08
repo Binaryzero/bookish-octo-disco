@@ -1,0 +1,31 @@
+import pandas as pd
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+
+# read the data into a pandas DataFrame
+df = pd.read_csv("data.csv")
+
+# create a new Excel workbook
+wb = Workbook()
+
+# loop through the unique values in the column
+for value in df["Column"].unique():
+
+    # select only the rows with the current value
+    subset = df[df["Column"] == value]
+
+    # create a new worksheet for the current value
+    ws = wb.create_sheet(title=str(value))
+
+    # write the data to the worksheet
+    for r in dataframe_to_rows(subset, index=False, header=True):
+        ws.append(r)
+
+    # format the worksheet as a table
+    tab = Table(displayName=str(value), ref=ws.dimensions)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    tab.tableStyleInfo = style
+    ws.add_table(tab)
+
+# save the workbook to a file
+wb.save("output.xlsx")
