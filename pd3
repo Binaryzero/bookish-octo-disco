@@ -1,28 +1,29 @@
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.worksheet.table import Table, TableStyleInfo
 
 # read the data into a pandas DataFrame
 df = pd.read_csv("data.csv")
 
+# group the data by the "Column" field
+grouped = df.groupby("Column")
+
 # create a new Excel workbook
 wb = Workbook()
 
-# loop through the unique values in the column
-for value in df["Column"].unique():
+# loop through the groups
+for name, group in grouped:
 
-    # select only the rows with the current value
-    subset = df[df["Column"] == value]
-
-    # create a new worksheet for the current value
-    ws = wb.create_sheet(title=str(value))
+    # create a new worksheet for the group
+    ws = wb.create_sheet(title=str(name))
 
     # write the data to the worksheet
-    for r in dataframe_to_rows(subset, index=False, header=True):
+    for r in dataframe_to_rows(group, index=False, header=True):
         ws.append(r)
 
     # format the worksheet as a table
-    tab = Table(displayName=str(value), ref=ws.dimensions)
+    tab = Table(displayName=str(name), ref=ws.dimensions)
     style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
     tab.tableStyleInfo = style
     ws.add_table(tab)
