@@ -6,27 +6,39 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 # read the data into a pandas DataFrame
 df = pd.read_csv("data.csv")
 
-# group the data by the "Column" field
-grouped = df.groupby("Column")
+# sort the data by the "Title" column
+df = df.sort_values("Title")
 
 # create a new Excel workbook
 wb = Workbook()
 
-# loop through the groups
-for name, group in grouped:
+# delete the default worksheet named "Sheet"
+default_sheet = wb["Sheet"]
+wb.remove(default_sheet)
 
-    # create a new worksheet for the group
-    ws = wb.create_sheet(title=str(name))
+# loop through the unique values in the column
+for value in df["Column"].unique():
+
+    # select only the rows with the current value
+    subset = df[df["Column"] == value]
+
+    # create a new worksheet for the current value
+    ws = wb.create_sheet(title=str(value))
 
     # write the data to the worksheet
-    for r in dataframe_to_rows(group, index=False, header=True):
+    for r in dataframe_to_rows(subset, index=False, header=True):
         ws.append(r)
 
     # format the worksheet as a table
-    tab = Table(displayName=str(name), ref=ws.dimensions)
+    tab = Table(displayName=str(value), ref=ws.dimensions)
     style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
     tab.tableStyleInfo = style
     ws.add_table(tab)
+
+    # expand all the fields on the worksheet
+    for column_cells in ws.columns:
+        length = max(len(str(cell.value)) for cell in column_cells)
+        ws.column_dimensions[column_cells[0].column_letter].width = length
 
 # save the workbook to a file
 wb.save("output.xlsx")
