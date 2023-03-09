@@ -3,7 +3,7 @@ from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.styles import numbers
-from openpyxl.worksheet.pivot_table import PivotTable, PivotTableStyleInfo
+from openpyxl.worksheet._table import PivotTable, PivotTableStyleInfo
 
 # read the data into a pandas DataFrame
 df = pd.read_csv("data.csv")
@@ -48,7 +48,7 @@ for value in df["Column"].unique():
     # format the "Due Date" column as "month day year"
     due_date_col = ws["D"]
     for cell in due_date_col[1:]:
-        cell.number_format = numbers.FORMAT_DATE_MMDDYYYY
+        cell.number_format = "dd/mm/yyyy"
 
     # add a pivot table to the worksheet
     rows = ["Short", "Title", "Due Date"]
@@ -60,7 +60,7 @@ for value in df["Column"].unique():
         PivotField(name=row, orientation="row", dataFields=values) for row in rows
     ]
     pt.dataFields = [PivotDataField(name=field, numFmtId=0, function="count") for field in values]
-    ws.add_pivot_table(pt)
+    ws._pivots.append(pt)
 
 # save the workbook to a file
 wb.save("output.xlsx")
