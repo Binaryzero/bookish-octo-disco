@@ -1,0 +1,66 @@
+import pandas as pd
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.worksheet.table import Table, TableStyleInfo
+from openpyxl.styles import numbers
+from openpyxl.worksheet.pivot_table import PivotTable, PivotTableStyleInfo
+
+# read the data into a pandas DataFrame
+df = pd.read_csv("data.csv")
+
+# convert the "Due Date" column to datetime format
+df["Due Date"] = pd.to_datetime(df["Due Date"])
+
+# sort the data by the "Title" column
+df = df.sort_values("Title")
+
+# create a new Excel workbook
+wb = Workbook()
+
+# delete the default worksheet named "Sheet"
+default_sheet = wb["Sheet"]
+wb.remove(default_sheet)
+
+# loop through the unique values in the column
+for value in df["Column"].unique():
+
+    # select only the rows with the current value
+    subset = df[df["Column"] == value]
+
+    # create a new worksheet for the current value
+    ws = wb.create_sheet(title=str(value))
+
+    # write the data to the worksheet
+    for r in dataframe_to_rows(subset, index=False, header=True):
+        ws.append(r)
+
+    # format the worksheet as a table
+    tab = Table(displayName=str(value), ref=ws.dimensions)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    tab.tableStyleInfo = style
+    ws.add_table(tab)
+
+    # expand all the fields on the worksheet
+    for column_cells in ws.columns:
+        length = max(len(str(cell.value)) for cell in column_cells)
+        ws.column_dimensions[column_cells[0].column_letter].width = length
+
+    # format the "Due Date" column as "month day year"
+    due_date_col = ws["D"]
+    for cell in due_date_col[1:]:
+        cell.number_format = numbers.FORMAT_DATE_MMDDYYYY
+
+    # add a pivot table to the worksheet
+    rows = ["Short", "Title", "Due Date"]
+    values = ["ID"]
+    pt = PivotTable()
+    pt.location = "A10"
+    pt.name = "Pivot Table"
+    pt.pivotFields = [
+        PivotField(name=row, orientation="row", dataFields=values) for row in rows
+    ]
+    pt.dataFields = [PivotDataField(name=field, numFmtId=0, function="count") for field in values]
+    ws.add_pivot_table(pt)
+
+# save the workbook to a file
+wb.save("output.xlsx")
