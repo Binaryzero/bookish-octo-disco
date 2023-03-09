@@ -50,6 +50,8 @@ for value in df["Column"].unique():
         cell.number_format = "dd/mm/yyyy"
 
     # create a pivot table on the worksheet
+    rows = ["Short", "Title", "Due Date"]
+    values = ["ID"]
     ws_pivot = wb.create_sheet(title=str(value) + " Pivot")
     ws_pivot.cell(row=1, column=1, value="Short")
     ws_pivot.cell(row=1, column=2, value="Title")
