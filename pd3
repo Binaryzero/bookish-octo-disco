@@ -2,9 +2,13 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.table import Table, TableStyleInfo
+from openpyxl.styles import numbers
 
 # read the data into a pandas DataFrame
 df = pd.read_csv("data.csv")
+
+# convert the "Due Date" column to datetime format
+df["Due Date"] = pd.to_datetime(df["Due Date"])
 
 # sort the data by the "Title" column
 df = df.sort_values("Title")
@@ -39,6 +43,11 @@ for value in df["Column"].unique():
     for column_cells in ws.columns:
         length = max(len(str(cell.value)) for cell in column_cells)
         ws.column_dimensions[column_cells[0].column_letter].width = length
+
+    # format the "Due Date" column as "month day year"
+    due_date_col = ws["D"]
+    for cell in due_date_col[1:]:
+        cell.number_format = numbers.FORMAT_DATE_MMDDYYYY
 
 # save the workbook to a file
 wb.save("output.xlsx")
